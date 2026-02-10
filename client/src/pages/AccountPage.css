@@ -1,0 +1,304 @@
+/* ===================================================================
+   AccountPage – profile, stats, settings
+   =================================================================== */
+
+.account-page {
+  min-height: calc(100vh - 72px);
+  background: var(--bg-light);
+  padding-bottom: 32px;
+}
+
+/* ---- Header ---- */
+.ap-header {
+  padding: 20px 20px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.ap-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ---- Profile card ---- */
+.ap-profile-card {
+  background: #fff;
+  margin: 16px;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ap-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+/* ---- Profile info (view mode) ---- */
+.ap-profile-info {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.ap-info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.ap-info-row svg {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.ap-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 20px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ap-edit-btn:hover {
+  background: var(--border-color);
+}
+
+/* ---- Save success ---- */
+.ap-save-success {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 14px;
+  background: #e8f5e9;
+  color: var(--primary-dark);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---- Edit form ---- */
+.ap-edit-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ap-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.ap-field input {
+  padding: 12px 14px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 15px;
+  transition: border-color 0.2s;
+}
+
+.ap-field input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.ap-field-readonly span {
+  padding: 12px 14px;
+  background: var(--bg-light);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.ap-save-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #ffebee;
+  color: var(--error);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.ap-edit-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ap-cancel-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ap-cancel-btn:hover {
+  background: var(--border-color);
+}
+
+.ap-save-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ap-save-btn:hover {
+  background: var(--primary-dark);
+}
+
+.ap-save-btn:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+.ap-spinner {
+  animation: ap-spin 0.8s linear infinite;
+}
+
+@keyframes ap-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Stats card ---- */
+.ap-stats-card {
+  background: #fff;
+  margin: 0 16px 16px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ap-stats-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-primary);
+}
+
+.ap-stats-loading {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.ap-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.ap-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  background: var(--bg-light);
+  border-radius: 14px;
+}
+
+.ap-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ap-stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---- Logout ---- */
+.ap-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: calc(100% - 32px);
+  margin: 8px 16px 0;
+  padding: 14px;
+  background: #fff;
+  border: 2px solid #f44336;
+  color: #f44336;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ap-logout-btn:hover {
+  background: #f44336;
+  color: #fff;
+}
+
+/* ---- App info ---- */
+.ap-app-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}

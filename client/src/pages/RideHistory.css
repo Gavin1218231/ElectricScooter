@@ -1,0 +1,229 @@
+/* ===================================================================
+   RideHistory – past rides list
+   =================================================================== */
+
+.ride-history {
+  min-height: calc(100vh - 72px);
+  background: var(--bg-light);
+  padding-bottom: 24px;
+}
+
+/* ---- Header ---- */
+.rh-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 16px;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rh-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.rh-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-light);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+/* ---- Loading ---- */
+.rh-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 12px;
+  color: var(--text-secondary);
+}
+
+.rh-spinner {
+  animation: rh-spin 0.8s linear infinite;
+}
+
+@keyframes rh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Error ---- */
+.rh-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  gap: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px;
+}
+
+/* ---- Empty state ---- */
+.rh-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+  color: var(--text-secondary);
+}
+
+.rh-empty-icon {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.rh-empty h2 {
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.rh-empty p {
+  font-size: 14px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+/* ---- Ride list ---- */
+.rh-list {
+  padding: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---- Ride card ---- */
+.rh-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s;
+}
+
+.rh-card-expanded {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.rh-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.rh-card-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rh-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #e8f5e9;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rh-card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.rh-card-info strong {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.rh-card-info span {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.rh-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+}
+
+.rh-card-cost {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ---- Card details (expanded) ---- */
+.rh-card-details {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.rh-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.rh-detail-row strong {
+  margin-left: auto;
+  color: var(--text-primary);
+}
+
+/* ---- Status badge ---- */
+.rh-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.rh-status-completed {
+  background: #e8f5e9;
+  color: var(--primary-dark);
+}
+
+.rh-status-cancelled {
+  background: #ffebee;
+  color: var(--error);
+}
+
+.rh-status-active {
+  background: #fff3e0;
+  color: #e65100;
+}

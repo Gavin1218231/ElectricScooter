@@ -1,0 +1,292 @@
+/* ===================================================================
+   WalletPage – balance, top-up, transaction history
+   =================================================================== */
+
+.wallet-page {
+  min-height: calc(100vh - 72px);
+  background: var(--bg-light);
+  padding-bottom: 24px;
+}
+
+/* ---- Loading / Error ---- */
+.wp-loading,
+.wp-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  gap: 12px;
+  color: var(--text-secondary);
+  padding: 24px;
+  text-align: center;
+}
+
+.wp-spinner {
+  animation: wp-spin 0.8s linear infinite;
+}
+
+@keyframes wp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.wp-retry-btn {
+  padding: 10px 24px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.wp-retry-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* ---- Balance card ---- */
+.wp-balance-card {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  padding: 32px 24px;
+  text-align: center;
+  color: #fff;
+}
+
+.wp-balance-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.wp-balance-amount {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+/* ---- Section ---- */
+.wp-section {
+  padding: 20px 16px 0;
+}
+
+.wp-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+/* ---- Preset buttons ---- */
+.wp-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.wp-preset-btn {
+  padding: 14px 8px;
+  background: #fff;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+}
+
+.wp-preset-btn:hover {
+  border-color: var(--primary);
+  background: #e8f5e9;
+}
+
+.wp-preset-btn:active {
+  transform: scale(0.96);
+}
+
+.wp-preset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ---- Custom top-up ---- */
+.wp-custom-topup {
+  display: flex;
+  gap: 10px;
+}
+
+.wp-custom-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.wp-custom-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.wp-custom-input-wrapper input {
+  width: 100%;
+  padding: 12px 12px 12px 34px;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.wp-custom-input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Hide number spinner */
+.wp-custom-input-wrapper input::-webkit-inner-spin-button,
+.wp-custom-input-wrapper input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.wp-custom-input-wrapper input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.wp-custom-btn {
+  padding: 12px 24px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  transition: background 0.2s;
+}
+
+.wp-custom-btn:hover {
+  background: var(--primary-dark);
+}
+
+.wp-custom-btn:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
+}
+
+/* ---- Topup feedback ---- */
+.wp-topup-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #ffebee;
+  color: var(--error);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.wp-topup-success {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #e8f5e9;
+  color: var(--primary-dark);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---- Transaction list ---- */
+.wp-tx-empty {
+  text-align: center;
+  padding: 32px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.wp-tx-list {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.wp-tx-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.wp-tx-item:last-child {
+  border-bottom: none;
+}
+
+.wp-tx-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.wp-tx-icon-credit {
+  color: var(--primary);
+}
+
+.wp-tx-icon-debit {
+  color: var(--error);
+}
+
+.wp-tx-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.wp-tx-desc {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.wp-tx-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.wp-tx-amount {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.wp-tx-amount-credit {
+  color: var(--primary-dark);
+}
+
+.wp-tx-amount-debit {
+  color: var(--error);
+}

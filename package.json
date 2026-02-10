@@ -1,0 +1,19 @@
+{
+  "name": "vim-scooters",
+  "version": "1.0.0",
+  "description": "Vim - Electric Scooter Rental Platform",
+  "private": true,
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm start",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "start:server": "cd server && npm start",
+    "start:client": "cd client && npm start",
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "build": "cd client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

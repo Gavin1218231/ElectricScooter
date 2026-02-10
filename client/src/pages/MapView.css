@@ -1,0 +1,337 @@
+/* ===================================================================
+   MapView – full-screen map with overlays
+   =================================================================== */
+
+.mapview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+  overflow: hidden;
+}
+
+/* ---- Active ride banner ---- */
+.mapview-ride-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--primary);
+  color: #fff;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  z-index: 800;
+  animation: banner-pulse 2s ease-in-out infinite;
+}
+
+.mapview-ride-banner:hover {
+  text-decoration: none;
+  background: var(--primary-dark);
+}
+
+@keyframes banner-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+/* ---- Search bar ---- */
+.mapview-search {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 800;
+}
+
+.mapview-ride-banner ~ .mapview-search {
+  top: 52px;
+}
+
+.mapview-search-form {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  padding: 0 4px 0 12px;
+}
+
+.mapview-search-icon {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.mapview-search-form input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 12px 8px;
+  font-size: 14px;
+  background: transparent;
+  min-width: 0;
+}
+
+.mapview-search-form button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.mapview-search-form button:hover {
+  background: var(--primary-dark);
+}
+
+.mapview-search-form button:disabled {
+  background: #bdbdbd;
+}
+
+.mapview-search-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: #ffebee;
+  color: var(--error);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* ---- Scooter count ---- */
+.mapview-count {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 800;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.mapview-ride-banner ~ .mapview-search ~ .mapview-count {
+  top: 104px;
+}
+
+/* ---- Error ---- */
+.mapview-error {
+  position: absolute;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 800;
+  background: #ffebee;
+  color: var(--error);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Map ---- */
+.mapview-map-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.mapview-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Floating controls ---- */
+.mapview-controls {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapview-control-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--text-primary);
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.mapview-control-btn:hover {
+  background: var(--bg-light);
+  transform: scale(1.05);
+}
+
+.mapview-control-btn:active {
+  transform: scale(0.95);
+}
+
+.mapview-control-btn .spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ---- Scooter markers ---- */
+.scooter-marker-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.scooter-marker {
+  width: 36px;
+  height: 36px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border: 2px solid #fff;
+}
+
+.scooter-marker svg {
+  transform: rotate(45deg);
+}
+
+/* ---- User location marker ---- */
+.user-marker-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-marker {
+  width: 16px;
+  height: 16px;
+  background: #2196F3;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 6px rgba(33, 150, 243, 0.5);
+  position: relative;
+}
+
+.user-marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  margin-left: -20px;
+  background: rgba(33, 150, 243, 0.2);
+  border-radius: 50%;
+  animation: user-pulse 2s ease-out infinite;
+}
+
+@keyframes user-pulse {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ---- Popup ---- */
+.mapview-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0;
+}
+
+.mapview-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 180px;
+}
+
+.mapview-popup-content {
+  padding: 14px;
+}
+
+.mapview-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.mapview-popup-header strong {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.mapview-popup-model {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.mapview-popup-stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.mapview-popup-battery,
+.mapview-popup-price {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mapview-popup-btn {
+  display: block;
+  text-align: center;
+  background: var(--primary);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.mapview-popup-btn:hover {
+  background: var(--primary-dark);
+  text-decoration: none;
+  color: #fff;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 375px) {
+  .mapview-search {
+    left: 8px;
+    right: 8px;
+  }
+
+  .mapview-search-form input {
+    font-size: 13px;
+  }
+}
