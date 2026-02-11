@@ -110,7 +110,7 @@ function createTables() {
 }
 
 /**
- * Seed the database with scooters scattered around San Francisco.
+ * Seed the database with scooters scattered around Southwest Florida.
  */
 function seedScooters() {
   const database = getDb();
@@ -123,63 +123,63 @@ function seedScooters() {
 
   const now = new Date().toISOString();
 
-  // Realistic San Francisco locations across different neighborhoods
+  // Realistic Southwest Florida locations across different areas
   const scooterData = [
-    // Downtown / Financial District
-    { lat: 37.7897, lng: -122.4009, model: 'Vim Pro', battery: 95, status: 'available' },
-    { lat: 37.7905, lng: -122.3988, model: 'Vim Lite', battery: 82, status: 'available' },
-    { lat: 37.7879, lng: -122.4074, model: 'Vim Max', battery: 68, status: 'available' },
-    { lat: 37.7893, lng: -122.4015, model: 'Vim Pro', battery: 44, status: 'charging' },
+    // Downtown Fort Myers / River District
+    { lat: 26.6487, lng: -81.8723, model: 'Vim Pro', battery: 95, status: 'available' },
+    { lat: 26.6462, lng: -81.8695, model: 'Vim Lite', battery: 82, status: 'available' },
+    { lat: 26.6441, lng: -81.8751, model: 'Vim Max', battery: 68, status: 'available' },
+    { lat: 26.6510, lng: -81.8680, model: 'Vim Pro', battery: 44, status: 'charging' },
 
-    // SOMA (South of Market)
-    { lat: 37.7785, lng: -122.3948, model: 'Vim Pro', battery: 91, status: 'available' },
-    { lat: 37.7749, lng: -122.3973, model: 'Vim Lite', battery: 76, status: 'available' },
-    { lat: 37.7762, lng: -122.3912, model: 'Vim Max', battery: 55, status: 'available' },
-    { lat: 37.7801, lng: -122.3935, model: 'Vim Lite', battery: 23, status: 'charging' },
+    // Fort Myers Beach
+    { lat: 26.4520, lng: -81.9500, model: 'Vim Pro', battery: 91, status: 'available' },
+    { lat: 26.4480, lng: -81.9460, model: 'Vim Lite', battery: 76, status: 'available' },
+    { lat: 26.4540, lng: -81.9530, model: 'Vim Max', battery: 55, status: 'available' },
+    { lat: 26.4500, lng: -81.9485, model: 'Vim Lite', battery: 23, status: 'charging' },
 
-    // Mission District
-    { lat: 37.7599, lng: -122.4148, model: 'Vim Pro', battery: 88, status: 'available' },
-    { lat: 37.7632, lng: -122.4191, model: 'Vim Lite', battery: 72, status: 'available' },
-    { lat: 37.7571, lng: -122.4177, model: 'Vim Max', battery: 64, status: 'available' },
-    { lat: 37.7618, lng: -122.4213, model: 'Vim Pro', battery: 35, status: 'maintenance' },
+    // Naples - 5th Avenue / Downtown
+    { lat: 26.1420, lng: -81.7948, model: 'Vim Pro', battery: 88, status: 'available' },
+    { lat: 26.1450, lng: -81.7980, model: 'Vim Lite', battery: 72, status: 'available' },
+    { lat: 26.1395, lng: -81.7920, model: 'Vim Max', battery: 64, status: 'available' },
+    { lat: 26.1475, lng: -81.8010, model: 'Vim Pro', battery: 35, status: 'maintenance' },
 
-    // Castro
-    { lat: 37.7609, lng: -122.4350, model: 'Vim Lite', battery: 97, status: 'available' },
-    { lat: 37.7625, lng: -122.4369, model: 'Vim Pro', battery: 81, status: 'available' },
+    // Cape Coral
+    { lat: 26.5629, lng: -81.9495, model: 'Vim Lite', battery: 97, status: 'available' },
+    { lat: 26.5680, lng: -81.9450, model: 'Vim Pro', battery: 81, status: 'available' },
 
-    // Marina District
-    { lat: 37.8015, lng: -122.4368, model: 'Vim Max', battery: 93, status: 'available' },
-    { lat: 37.8002, lng: -122.4325, model: 'Vim Pro', battery: 66, status: 'available' },
-    { lat: 37.8028, lng: -122.4401, model: 'Vim Lite', battery: 48, status: 'available' },
+    // Sanibel Island
+    { lat: 26.4389, lng: -82.0210, model: 'Vim Max', battery: 93, status: 'available' },
+    { lat: 26.4420, lng: -82.0150, model: 'Vim Pro', battery: 66, status: 'available' },
+    { lat: 26.4350, lng: -82.0280, model: 'Vim Lite', battery: 48, status: 'available' },
 
-    // North Beach
-    { lat: 37.8003, lng: -122.4091, model: 'Vim Pro', battery: 85, status: 'available' },
-    { lat: 37.7987, lng: -122.4067, model: 'Vim Max', battery: 71, status: 'available' },
+    // Bonita Springs
+    { lat: 26.3398, lng: -81.7787, model: 'Vim Pro', battery: 85, status: 'available' },
+    { lat: 26.3450, lng: -81.7820, model: 'Vim Max', battery: 71, status: 'available' },
 
-    // Haight-Ashbury
-    { lat: 37.7692, lng: -122.4481, model: 'Vim Lite', battery: 58, status: 'available' },
-    { lat: 37.7710, lng: -122.4508, model: 'Vim Pro', battery: 90, status: 'available' },
+    // Estero
+    { lat: 26.4381, lng: -81.8068, model: 'Vim Lite', battery: 58, status: 'available' },
+    { lat: 26.4320, lng: -81.8100, model: 'Vim Pro', battery: 90, status: 'available' },
 
-    // Nob Hill
-    { lat: 37.7930, lng: -122.4161, model: 'Vim Max', battery: 77, status: 'available' },
-    { lat: 37.7919, lng: -122.4139, model: 'Vim Pro', battery: 42, status: 'charging' },
+    // Marco Island
+    { lat: 25.9410, lng: -81.7185, model: 'Vim Max', battery: 77, status: 'available' },
+    { lat: 25.9380, lng: -81.7220, model: 'Vim Pro', battery: 42, status: 'charging' },
 
-    // Pacific Heights
-    { lat: 37.7925, lng: -122.4352, model: 'Vim Lite', battery: 100, status: 'available' },
-    { lat: 37.7938, lng: -122.4310, model: 'Vim Pro', battery: 86, status: 'available' },
+    // Captiva Island
+    { lat: 26.5250, lng: -82.1880, model: 'Vim Lite', battery: 100, status: 'available' },
+    { lat: 26.5210, lng: -82.1850, model: 'Vim Pro', battery: 86, status: 'available' },
 
-    // Embarcadero / Waterfront
-    { lat: 37.7955, lng: -122.3933, model: 'Vim Max', battery: 74, status: 'available' },
-    { lat: 37.7935, lng: -122.3917, model: 'Vim Pro', battery: 62, status: 'available' },
-    { lat: 37.7968, lng: -122.3945, model: 'Vim Lite', battery: 29, status: 'maintenance' },
+    // Punta Gorda
+    { lat: 26.9298, lng: -82.0454, model: 'Vim Max', battery: 74, status: 'available' },
+    { lat: 26.9320, lng: -82.0420, model: 'Vim Pro', battery: 62, status: 'available' },
+    { lat: 26.9280, lng: -82.0490, model: 'Vim Lite', battery: 29, status: 'maintenance' },
 
-    // Civic Center
-    { lat: 37.7793, lng: -122.4193, model: 'Vim Pro', battery: 83, status: 'available' },
-    { lat: 37.7810, lng: -122.4157, model: 'Vim Max', battery: 51, status: 'available' },
+    // Lehigh Acres
+    { lat: 26.6252, lng: -81.6247, model: 'Vim Pro', battery: 83, status: 'available' },
+    { lat: 26.6280, lng: -81.6210, model: 'Vim Max', battery: 51, status: 'available' },
 
-    // Potrero Hill
-    { lat: 37.7604, lng: -122.3930, model: 'Vim Lite', battery: 69, status: 'available' },
-    { lat: 37.7582, lng: -122.3958, model: 'Vim Pro', battery: 20, status: 'charging' },
+    // Pine Island
+    { lat: 26.6350, lng: -82.1200, model: 'Vim Lite', battery: 69, status: 'available' },
+    { lat: 26.6310, lng: -82.1170, model: 'Vim Pro', battery: 20, status: 'charging' },
   ];
 
   const insert = database.prepare(`
@@ -214,7 +214,7 @@ function seedScooters() {
   });
 
   insertMany(scooterData);
-  console.log(`Seeded ${scooterData.length} scooters across San Francisco`);
+  console.log(`Seeded ${scooterData.length} scooters across Southwest Florida`);
 }
 
 /**

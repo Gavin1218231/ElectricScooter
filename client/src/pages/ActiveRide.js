@@ -66,28 +66,27 @@ export default function ActiveRide() {
 
   /* ---- Derived values ---- */
   const unlockFee = activeRental?.unlock_fee ?? activeRental?.unlockFee ?? 1.0;
-  const pricePerMin = activeRental?.price_per_minute ?? activeRental?.pricePerMinute ?? 0.25;
+  const pricePerMin = activeRental?.per_minute_cost ?? activeRental?.price_per_minute ?? activeRental?.pricePerMinute ?? 0.25;
   const elapsedMinutes = elapsed / 60;
   const runningCost = unlockFee + elapsedMinutes * pricePerMin;
-  const battery = activeRental?.scooter?.battery_level ?? activeRental?.scooter?.batteryLevel ?? activeRental?.battery_level ?? '—';
+  const battery = activeRental?.scooter_battery ?? activeRental?.scooter?.battery_level ?? activeRental?.battery_level ?? '—';
 
   const startLat =
-    activeRental?.start_location?.coordinates?.[1] ??
-    activeRental?.startLocation?.coordinates?.[1] ??
+    activeRental?.start_latitude ??
     activeRental?.startLat ??
-    37.7749;
+    26.49;
   const startLng =
-    activeRental?.start_location?.coordinates?.[0] ??
-    activeRental?.startLocation?.coordinates?.[0] ??
+    activeRental?.start_longitude ??
     activeRental?.startLng ??
-    -122.4194;
+    -81.87;
 
   const scooterCode =
+    activeRental?.scooter_code ||
     activeRental?.scooter?.code ||
-    activeRental?.scooter?.scooterCode ||
     activeRental?.scooterCode ||
     'VIM-XXXX';
   const scooterModel =
+    activeRental?.scooter_model ||
     activeRental?.scooter?.model || activeRental?.scooterModel || 'Vim Scooter';
 
   /* ---- End ride ---- */
@@ -98,14 +97,15 @@ export default function ActiveRide() {
 
     const finish = async (lat, lng) => {
       try {
-        const result = await endRental(activeRental._id || activeRental.id, lat, lng);
+        const result = await endRental(activeRental.id || activeRental._id, lat, lng);
         const rental = result?.rental || result;
+        const sum = result?.summary || {};
         setSummary({
-          duration: rental?.duration ?? Math.round(elapsed / 60),
-          distance: rental?.distance ?? 0,
-          unlockFee: rental?.unlock_fee ?? rental?.unlockFee ?? unlockFee,
-          rideCost: rental?.ride_cost ?? rental?.rideCost ?? (elapsedMinutes * pricePerMin),
-          total: rental?.total_cost ?? rental?.totalCost ?? runningCost,
+          duration: sum.duration_minutes ?? rental?.duration_minutes ?? Math.round(elapsed / 60),
+          distance: sum.distance_km ?? rental?.distance_km ?? 0,
+          unlockFee: sum.unlock_fee ?? rental?.unlock_fee ?? unlockFee,
+          rideCost: sum.per_minute_cost ?? rental?.per_minute_cost ?? (elapsedMinutes * pricePerMin),
+          total: sum.total_cost ?? rental?.total_cost ?? runningCost,
         });
       } catch (err) {
         setEndError(err.message || 'Failed to end ride');

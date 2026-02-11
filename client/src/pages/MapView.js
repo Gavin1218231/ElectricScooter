@@ -62,9 +62,9 @@ const userIcon = L.divIcon({
 });
 
 /* ------------------------------------------------------------------ */
-/*  Default centre – San Francisco                                    */
+/*  Default centre – Southwest Florida                                */
 /* ------------------------------------------------------------------ */
-const DEFAULT_CENTER = [37.7749, -122.4194];
+const DEFAULT_CENTER = [26.49, -81.87];
 
 /* ------------------------------------------------------------------ */
 /*  MapView Component                                                 */
@@ -142,8 +142,8 @@ export default function MapView() {
     try {
       const data = await api.scooters.getByCode(code);
       const scooter = data.scooter || data;
-      if (scooter && scooter._id) {
-        navigate(`/scooter/${scooter._id}`);
+      if (scooter && (scooter.id || scooter._id)) {
+        navigate(`/scooter/${scooter.id || scooter._id}`);
       } else {
         setSearchError('Scooter not found');
       }
@@ -234,12 +234,12 @@ export default function MapView() {
 
           {/* Scooters */}
           {scooters.map((s) => {
-            const lat = s.location?.coordinates?.[1] ?? s.lat;
-            const lng = s.location?.coordinates?.[0] ?? s.lng;
+            const lat = s.latitude ?? s.lat;
+            const lng = s.longitude ?? s.lng;
             if (lat == null || lng == null) return null;
             return (
               <Marker
-                key={s._id}
+                key={s.id || s._id}
                 position={[lat, lng]}
                 icon={scooterIcon(s.battery_level ?? s.batteryLevel ?? 100)}
               >
@@ -261,7 +261,7 @@ export default function MapView() {
                       </span>
                     </div>
                     <Link
-                      to={`/scooter/${s._id}`}
+                      to={`/scooter/${s.id || s._id}`}
                       className="mapview-popup-btn"
                     >
                       Rent This Scooter

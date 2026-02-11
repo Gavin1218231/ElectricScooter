@@ -51,7 +51,7 @@ export function RentalProvider({ children }) {
   }, []);
 
   const endRental = useCallback(async (id, lat, lng) => {
-    const data = await api.rentals.end(id, { lat, lng });
+    const data = await api.rentals.end(id, { latitude: lat, longitude: lng });
     setActiveRental(null);
     return data;
   }, []);

@@ -86,7 +86,7 @@ const api = {
 
   rentals: {
     start(scooterId) {
-      return request('POST', '/rentals/start', { scooterId });
+      return request('POST', '/rentals/start', { scooter_id: scooterId });
     },
     end(id, data) {
       return request('POST', `/rentals/${id}/end`, data);

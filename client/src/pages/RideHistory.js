@@ -136,9 +136,9 @@ export default function RideHistory() {
           const id = ride._id || ride.id;
           const isExpanded = expandedId === id;
           const code =
-            ride.scooter?.code || ride.scooter?.scooterCode || ride.scooterCode || 'VIM-XXXX';
-          const duration = ride.duration ?? ride.ride_duration ?? '—';
-          const distance = ride.distance ?? ride.ride_distance;
+            ride.scooter_code || ride.scooter?.code || ride.scooterCode || 'VIM-XXXX';
+          const duration = ride.duration_minutes ?? ride.duration ?? '—';
+          const distance = ride.distance_km ?? ride.distance;
           const cost = ride.total_cost ?? ride.totalCost ?? ride.cost ?? 0;
           const status = ride.status || 'completed';
           const date = ride.start_time || ride.startTime || ride.createdAt;
