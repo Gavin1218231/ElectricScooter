@@ -46,7 +46,15 @@ export function RentalProvider({ children }) {
 
   const startRental = useCallback(async (scooterId) => {
     const data = await api.rentals.start(scooterId);
-    setActiveRental(data.rental || data);
+    const rental = data.rental || data;
+    // Enrich rental with scooter fields for immediate display
+    // (GET /active returns these via JOIN, but POST /start returns scooter separately)
+    if (data.scooter) {
+      rental.scooter_code = data.scooter.code;
+      rental.scooter_model = data.scooter.model;
+      rental.scooter_battery = data.scooter.battery_level;
+    }
+    setActiveRental(rental);
     return data;
   }, []);
 
