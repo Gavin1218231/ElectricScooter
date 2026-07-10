@@ -21,7 +21,10 @@ export function RentalProvider({ children }) {
     try {
       setLoading(true);
       const data = await api.rentals.active();
-      setActiveRental(data.rental || data || null);
+      // Server returns { rental: null } (HTTP 200) when there is no active ride,
+      // so read the rental key explicitly — `data.rental || data` would collapse
+      // to the truthy wrapper object and create a phantom rental.
+      setActiveRental(data && 'rental' in data ? data.rental : null);
     } catch (err) {
       if (err.status === 404) {
         setActiveRental(null);
@@ -36,7 +39,7 @@ export function RentalProvider({ children }) {
 
     try {
       const data = await api.rentals.active();
-      setActiveRental(data.rental || data || null);
+      setActiveRental(data && 'rental' in data ? data.rental : null);
     } catch (err) {
       if (err.status === 404) {
         setActiveRental(null);

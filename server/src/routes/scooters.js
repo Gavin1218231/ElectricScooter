@@ -38,6 +38,10 @@ router.get('/', (req, res) => {
         return res.status(400).json({ error: 'Invalid lat/lng values.' });
       }
 
+      if (userLat < -90 || userLat > 90 || userLng < -180 || userLng > 180) {
+        return res.status(400).json({ error: 'Coordinates are out of range.' });
+      }
+
       const scootersWithDistance = scooters
         .map((scooter) => {
           const distance = haversineDistance(userLat, userLng, scooter.latitude, scooter.longitude);

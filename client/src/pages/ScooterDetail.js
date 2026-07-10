@@ -48,8 +48,8 @@ export default function ScooterDetail() {
   }, [id]);
 
   const battery = scooter?.battery_level ?? scooter?.batteryLevel ?? 0;
-  const unlockFee = scooter?.price_to_unlock ?? scooter?.unlock_fee ?? scooter?.unlockFee ?? 1.0;
-  const pricePerMin = scooter?.price_per_minute ?? scooter?.pricePerMinute ?? 0.25;
+  const unlockFee = Number(scooter?.price_to_unlock ?? scooter?.unlock_fee ?? scooter?.unlockFee ?? 1.0);
+  const pricePerMin = Number(scooter?.price_per_minute ?? scooter?.pricePerMinute ?? 0.25);
   const estimatedCost = unlockFee + estimatedMinutes * pricePerMin;
   const isAvailable =
     scooter &&

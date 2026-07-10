@@ -140,6 +140,10 @@ router.post('/:id/end', (req, res) => {
       return res.status(400).json({ error: 'Invalid latitude or longitude values.' });
     }
 
+    if (endLat < -90 || endLat > 90 || endLng < -180 || endLng > 180) {
+      return res.status(400).json({ error: 'Coordinates are out of range.' });
+    }
+
     // Fetch the rental
     const rental = db.prepare('SELECT * FROM rentals WHERE id = ? AND user_id = ?').get(id, userId);
     if (!rental) {

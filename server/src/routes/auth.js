@@ -156,8 +156,8 @@ router.put('/me', authenticate, (req, res) => {
     }
 
     // Validate name if provided
-    if (updates.name !== undefined && (!updates.name || updates.name.trim().length === 0)) {
-      return res.status(400).json({ error: 'Name cannot be empty.' });
+    if (updates.name !== undefined && (typeof updates.name !== 'string' || updates.name.trim().length === 0)) {
+      return res.status(400).json({ error: 'Name must be a non-empty string.' });
     }
 
     const now = new Date().toISOString();
