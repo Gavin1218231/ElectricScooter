@@ -269,11 +269,14 @@ router.get('/active', (req, res) => {
       return res.json({ rental: null });
     }
 
-    // Calculate current duration and estimated cost
+    // Calculate current duration and estimated cost.
+    // Billing enforces a 1-minute minimum at end, so mirror that floor here
+    // to avoid the estimate under-stating the actual charge for sub-1-min rides.
     const startTime = new Date(rental.start_time);
     const now = new Date();
     const currentDuration = (now - startTime) / (1000 * 60);
-    const estimatedCost = Math.round((rental.unlock_fee + currentDuration * rental.per_minute_cost) * 100) / 100;
+    const billedDuration = Math.max(currentDuration, 1);
+    const estimatedCost = Math.round((rental.unlock_fee + billedDuration * rental.per_minute_cost) * 100) / 100;
 
     res.json({
       rental: {

@@ -32,7 +32,9 @@ router.get('/', (req, res) => {
     if (lat && lng) {
       const userLat = parseFloat(lat);
       const userLng = parseFloat(lng);
-      const searchRadius = parseFloat(radius) || 5;
+      // Distinguish an explicit radius (including 0) from a missing one; reject negatives.
+      const parsedRadius = parseFloat(radius);
+      const searchRadius = Number.isNaN(parsedRadius) ? 5 : parsedRadius;
 
       if (isNaN(userLat) || isNaN(userLng)) {
         return res.status(400).json({ error: 'Invalid lat/lng values.' });
@@ -40,6 +42,10 @@ router.get('/', (req, res) => {
 
       if (userLat < -90 || userLat > 90 || userLng < -180 || userLng > 180) {
         return res.status(400).json({ error: 'Coordinates are out of range.' });
+      }
+
+      if (searchRadius < 0) {
+        return res.status(400).json({ error: 'Radius cannot be negative.' });
       }
 
       const scootersWithDistance = scooters
