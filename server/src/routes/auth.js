@@ -17,7 +17,7 @@ const router = express.Router();
  * Body: { email, password, name, phone }
  * Returns: { token, user }
  */
-router.post('/register', (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { email, password, name, phone } = req.body;
 
@@ -45,9 +45,8 @@ router.post('/register', (req, res) => {
       return res.status(409).json({ error: 'An account with this email already exists.' });
     }
 
-    // Hash password
-    const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hashSync(password, salt);
+    // Hash password (async so it doesn't block the event loop under load)
+    const passwordHash = await bcrypt.hash(password, 10);
 
     const now = new Date().toISOString();
     const id = uuidv4();
@@ -77,7 +76,7 @@ router.post('/register', (req, res) => {
  * Body: { email, password }
  * Returns: { token, user }
  */
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -93,8 +92,8 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
-    // Verify password
-    const validPassword = bcrypt.compareSync(password, userWithPassword.password_hash);
+    // Verify password (async so it doesn't block the event loop under load)
+    const validPassword = await bcrypt.compare(password, userWithPassword.password_hash);
     if (!validPassword) {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }

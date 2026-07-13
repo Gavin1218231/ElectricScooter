@@ -2,10 +2,21 @@
  * JWT authentication middleware for the Vim scooter app.
  */
 
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../database');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'vim-scooter-secret-key-change-in-production';
+// Never ship a hardcoded fallback secret: a committed default lets anyone forge
+// tokens for any account. Use JWT_SECRET from the environment; if it is absent
+// (e.g. local dev with no .env), generate a random per-process secret so tokens
+// are still unforgeable — they simply don't survive a server restart.
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    '[auth] JWT_SECRET is not set — using a random per-process secret. ' +
+    'Sessions will not persist across restarts. Set JWT_SECRET for production.'
+  );
+}
 
 /**
  * Generate a JWT token for a user.
@@ -16,7 +27,7 @@ function generateToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email },
     JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '7d', algorithm: 'HS256' }
   );
 }
 
@@ -36,7 +47,7 @@ function authenticate(req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     const db = getDb();
     const user = db.prepare('SELECT id, email, name, phone, balance, created_at, updated_at FROM users WHERE id = ?').get(decoded.id);
 
@@ -69,7 +80,7 @@ function optionalAuth(req, res, next) {
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET, { algorithms: ['HS256'] });
     const db = getDb();
     const user = db.prepare('SELECT id, email, name, phone, balance, created_at, updated_at FROM users WHERE id = ?').get(decoded.id);
     req.user = user || null;

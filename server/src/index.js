@@ -10,6 +10,8 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { initializeDatabase } = require('./database');
 
 // Import route modules
@@ -21,9 +23,50 @@ const paymentRoutes = require('./routes/payments');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// Security headers
+app.use(helmet());
+
+// Restrict CORS to configured origin(s) instead of allowing every site.
+// CORS_ORIGIN is a comma-separated allowlist; defaults to the local dev client.
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000')
+  .split(',')
+  .map((o) => o.trim());
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow non-browser clients (curl, mobile apps) that send no Origin header.
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+  })
+);
+
 app.use(express.json());
+
+// Rate limiting: a general cap for all API traffic, plus a stricter cap on the
+// auth endpoints to blunt credential brute-force and account-spam attacks.
+// Allow test suites to bypass rate limiting (standard practice) without weakening
+// the control in normal operation.
+const skipRateLimit = () => process.env.DISABLE_RATE_LIMIT === 'true';
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipRateLimit,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipRateLimit,
+  message: { error: 'Too many attempts. Please try again later.' },
+});
+app.use('/api', generalLimiter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -35,7 +78,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Mount API routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/scooters', scooterRoutes);
 app.use('/api/rentals', rentalRoutes);
 app.use('/api/payments', paymentRoutes);
