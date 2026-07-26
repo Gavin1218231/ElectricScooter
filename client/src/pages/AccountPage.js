@@ -48,12 +48,14 @@ export default function AccountPage() {
         const data = await api.rentals.history();
         const rides = data.rentals || data || [];
         if (!cancelled) {
-          const totalRides = rides.length;
-          const totalSpent = rides.reduce((sum, r) => {
+          // Prefer server-side aggregates: history is paginated, so reducing the
+          // returned page would under-count a user with more rides than one page.
+          const totalRides = data.total ?? rides.length;
+          const totalSpent = data.total_spent ?? rides.reduce((sum, r) => {
             const cost = r.total_cost ?? r.totalCost ?? r.cost ?? 0;
             return sum + Number(cost);
           }, 0);
-          setStats({ totalRides, totalSpent });
+          setStats({ totalRides, totalSpent: Number(totalSpent) });
         }
       } catch {
         /* ignore */

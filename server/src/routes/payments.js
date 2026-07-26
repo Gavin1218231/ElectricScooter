@@ -7,6 +7,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../database');
 const { authenticate } = require('../middleware/auth');
+const { parsePagination } = require('../utils/pagination');
 
 const router = express.Router();
 
@@ -95,6 +96,9 @@ router.get('/history', (req, res) => {
   try {
     const db = getDb();
 
+    // Bound the result set so a long-lived account can't produce an unbounded response.
+    const { limit, offset } = parsePagination(req.query);
+
     const payments = db.prepare(`
       SELECT p.*,
              r.scooter_id
@@ -102,9 +106,14 @@ router.get('/history', (req, res) => {
       LEFT JOIN rentals r ON p.rental_id = r.id
       WHERE p.user_id = ?
       ORDER BY p.created_at DESC
-    `).all(req.user.id);
+      LIMIT ? OFFSET ?
+    `).all(req.user.id, limit, offset);
 
-    res.json({ payments });
+    const { total } = db
+      .prepare('SELECT COUNT(*) as total FROM payments WHERE user_id = ?')
+      .get(req.user.id);
+
+    res.json({ payments, total, limit, offset });
   } catch (err) {
     console.error('Get payment history error:', err);
     res.status(500).json({ error: 'Internal server error.' });

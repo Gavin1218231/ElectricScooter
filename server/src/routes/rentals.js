@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../database');
 const { authenticate } = require('../middleware/auth');
 const { haversineDistance } = require('../utils/geo');
+const { parsePagination } = require('../utils/pagination');
 
 const router = express.Router();
 
@@ -61,6 +62,30 @@ router.post('/start', (req, res) => {
 
     // Use a transaction to ensure atomicity
     const startRental = db.transaction(() => {
+      // Claim the scooter first, conditional on it still being available.
+      // The availability check above happens outside the transaction; a single
+      // Node process can't interleave (better-sqlite3 is synchronous), but this
+      // conditional write makes the claim safe under a multi-process deploy too.
+      const claimed = db
+        .prepare("UPDATE scooters SET status = 'in_use' WHERE id = ? AND status = 'available'")
+        .run(scooter_id);
+      if (claimed.changes === 0) {
+        // Someone else claimed it between the check and now — abort the transaction.
+        const err = new Error('SCOOTER_UNAVAILABLE');
+        err.code = 'SCOOTER_UNAVAILABLE';
+        throw err;
+      }
+
+      // Guard against a concurrent rental for this same user.
+      const stillNoActive = db
+        .prepare("SELECT id FROM rentals WHERE user_id = ? AND status = 'active'")
+        .get(userId);
+      if (stillNoActive) {
+        const err = new Error('ALREADY_RENTING');
+        err.code = 'ALREADY_RENTING';
+        throw err;
+      }
+
       // Create rental record
       db.prepare(`
         INSERT INTO rentals (id, user_id, scooter_id, status, start_latitude, start_longitude, start_time, unlock_fee, per_minute_cost, created_at)
@@ -76,9 +101,6 @@ router.post('/start', (req, res) => {
         scooter.price_per_minute,
         now
       );
-
-      // Update scooter status to in_use
-      db.prepare("UPDATE scooters SET status = 'in_use' WHERE id = ?").run(scooter_id);
 
       // Deduct unlock fee from user balance
       db.prepare('UPDATE users SET balance = balance - ?, updated_at = ? WHERE id = ?').run(
@@ -110,6 +132,13 @@ router.post('/start', (req, res) => {
 
     res.status(201).json({ rental, scooter: updatedScooter, user: updatedUser });
   } catch (err) {
+    // Lost a concurrent claim — a client error, not a server fault.
+    if (err.code === 'SCOOTER_UNAVAILABLE') {
+      return res.status(400).json({ error: 'Scooter is no longer available. Please pick another one.' });
+    }
+    if (err.code === 'ALREADY_RENTING') {
+      return res.status(400).json({ error: 'You already have an active rental. Please end it before starting a new one.' });
+    }
     console.error('Start rental error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
@@ -301,6 +330,11 @@ router.get('/history', (req, res) => {
   try {
     const db = getDb();
 
+    // Bound the result set so a long-lived account can't produce an unbounded
+    // response. Aggregates are computed over ALL rows so lifetime stats stay
+    // correct regardless of the page requested.
+    const { limit, offset } = parsePagination(req.query);
+
     const rentals = db.prepare(`
       SELECT r.*,
              s.code as scooter_code, s.model as scooter_model
@@ -308,9 +342,21 @@ router.get('/history', (req, res) => {
       JOIN scooters s ON r.scooter_id = s.id
       WHERE r.user_id = ?
       ORDER BY r.created_at DESC
-    `).all(req.user.id);
+      LIMIT ? OFFSET ?
+    `).all(req.user.id, limit, offset);
 
-    res.json({ rentals });
+    const totals = db.prepare(`
+      SELECT COUNT(*) as total, COALESCE(SUM(total_cost), 0) as total_spent
+      FROM rentals WHERE user_id = ?
+    `).get(req.user.id);
+
+    res.json({
+      rentals,
+      total: totals.total,
+      total_spent: Math.round(totals.total_spent * 100) / 100,
+      limit,
+      offset,
+    });
   } catch (err) {
     console.error('Get rental history error:', err);
     res.status(500).json({ error: 'Internal server error.' });
