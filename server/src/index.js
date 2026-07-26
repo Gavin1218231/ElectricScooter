@@ -49,7 +49,10 @@ app.use(express.json());
 // auth endpoints to blunt credential brute-force and account-spam attacks.
 // Allow test suites to bypass rate limiting (standard practice) without weakening
 // the control in normal operation.
-const skipRateLimit = () => process.env.DISABLE_RATE_LIMIT === 'true';
+// The bypass is only honoured outside production, so setting it in a production
+// environment (accidentally or otherwise) cannot disable rate limiting.
+const skipRateLimit = () =>
+  process.env.DISABLE_RATE_LIMIT === 'true' && process.env.NODE_ENV !== 'production';
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,
@@ -90,6 +93,15 @@ app.use('/api/*', (req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
+  // Malformed JSON bodies and similar client errors arrive here with a 4xx
+  // status already set (e.g. body-parser SyntaxError). Returning 500 for those
+  // misreports a client mistake as a server fault and hides real 500s.
+  if (err && err.status >= 400 && err.status < 500) {
+    return res.status(err.status).json({ error: 'Invalid request body.' });
+  }
+  if (err && err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'Origin not allowed.' });
+  }
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error.' });
 });
