@@ -43,16 +43,27 @@ app.use(
   })
 );
 
-app.use(express.json());
+// Cap request bodies well below the 100kb default — no endpoint here needs more,
+// and a smaller cap limits storage-exhaustion via oversized field values.
+app.use(express.json({ limit: '10kb' }));
+
+// Rate limiting keys on req.ip. With `trust proxy` unset, req.ip is the socket
+// address: X-Forwarded-For cannot be spoofed, but behind a reverse proxy every
+// client collapses into the proxy's single bucket, letting one attacker throttle
+// everyone. Configure TRUST_PROXY (a hop count or CIDR) for proxied deploys.
+// Never set it to `true` — that trusts a fully client-controlled header.
+if (process.env.TRUST_PROXY) {
+  const hops = Number(process.env.TRUST_PROXY);
+  app.set('trust proxy', Number.isNaN(hops) ? process.env.TRUST_PROXY : hops);
+}
 
 // Rate limiting: a general cap for all API traffic, plus a stricter cap on the
 // auth endpoints to blunt credential brute-force and account-spam attacks.
-// Allow test suites to bypass rate limiting (standard practice) without weakening
-// the control in normal operation.
-// The bypass is only honoured outside production, so setting it in a production
-// environment (accidentally or otherwise) cannot disable rate limiting.
+// The bypass is opt-IN for tests only: it requires NODE_ENV === 'test', so an
+// unset NODE_ENV (the default in a plain `node src/index.js` deploy) keeps rate
+// limiting fully enforced.
 const skipRateLimit = () =>
-  process.env.DISABLE_RATE_LIMIT === 'true' && process.env.NODE_ENV !== 'production';
+  process.env.DISABLE_RATE_LIMIT === 'true' && process.env.NODE_ENV === 'test';
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 300,

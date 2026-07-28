@@ -11,6 +11,17 @@ const { generateToken, authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Field length bounds (see also the 10kb body cap in index.js).
+const MAX_EMAIL = 254;
+const MAX_NAME = 100;
+const MAX_PHONE = 32;
+const MAX_PASSWORD = 128;
+
+// A bcrypt hash of a value no user can supply, used to equalise the cost of the
+// "user not found" login path. Without it, a miss returns ~60x faster than a
+// wrong password, which is a reliable single-request user-enumeration oracle.
+const DUMMY_HASH = bcrypt.hashSync('vim-timing-equaliser-not-a-real-password', 10);
+
 /**
  * POST /auth/register
  * Create a new user account.
@@ -21,9 +32,22 @@ router.post('/register', async (req, res) => {
   try {
     const { email, password, name, phone } = req.body;
 
-    // Validate required fields
+    // Validate required fields. Type-check before any string method is called —
+    // a non-string here would otherwise throw and surface as a 500.
     if (!email || !password || !name) {
       return res.status(400).json({ error: 'Email, password, and name are required.' });
+    }
+    if (typeof email !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
+      return res.status(400).json({ error: 'Email, password, and name must be strings.' });
+    }
+    if (phone !== undefined && phone !== null && typeof phone !== 'string') {
+      return res.status(400).json({ error: 'Phone must be a string.' });
+    }
+
+    // Bound field lengths so oversized values can't be persisted repeatedly.
+    if (email.length > MAX_EMAIL || name.length > MAX_NAME ||
+        (phone && phone.length > MAX_PHONE) || password.length > MAX_PASSWORD) {
+      return res.status(400).json({ error: 'One or more fields exceed the maximum allowed length.' });
     }
 
     // Validate email format
@@ -83,12 +107,18 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
     }
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Email and password must be strings.' });
+    }
 
     const db = getDb();
 
     // Find user by email
     const userWithPassword = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
     if (!userWithPassword) {
+      // Spend the same bcrypt cost as a real verification so the response time
+      // doesn't reveal whether the account exists.
+      await bcrypt.compare(password, DUMMY_HASH);
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
 
@@ -157,6 +187,20 @@ router.put('/me', authenticate, (req, res) => {
     // Validate name if provided
     if (updates.name !== undefined && (typeof updates.name !== 'string' || updates.name.trim().length === 0)) {
       return res.status(400).json({ error: 'Name must be a non-empty string.' });
+    }
+    if (updates.name !== undefined && updates.name.length > MAX_NAME) {
+      return res.status(400).json({ error: `Name must be ${MAX_NAME} characters or fewer.` });
+    }
+
+    // Validate phone if provided. Previously untyped: an object/array/number here
+    // reached SQLite unchecked, storing garbage or throwing a 500.
+    if (updates.phone !== null && updates.phone !== undefined) {
+      if (typeof updates.phone !== 'string') {
+        return res.status(400).json({ error: 'Phone must be a string.' });
+      }
+      if (updates.phone.length > MAX_PHONE) {
+        return res.status(400).json({ error: `Phone must be ${MAX_PHONE} characters or fewer.` });
+      }
     }
 
     const now = new Date().toISOString();

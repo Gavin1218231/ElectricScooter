@@ -12,6 +12,11 @@ const { parsePagination } = require('../utils/pagination');
 
 const router = express.Router();
 
+// Bounds for trusting a rider-reported drop-off location. Generous on purpose:
+// a scooter can legitimately be carried in a vehicle, and GPS drifts.
+const MAX_PLAUSIBLE_KMH = 120;
+const MIN_PLAUSIBLE_KM = 2;
+
 // All rental routes require authentication
 router.use(authenticate);
 
@@ -30,6 +35,10 @@ router.post('/start', (req, res) => {
 
     if (!scooter_id) {
       return res.status(400).json({ error: 'scooter_id is required.' });
+    }
+    // Type-check before it reaches SQLite — a non-string threw a 500 previously.
+    if (typeof scooter_id !== 'string') {
+      return res.status(400).json({ error: 'scooter_id must be a string.' });
     }
 
     // Check if scooter exists and is available
@@ -204,10 +213,20 @@ router.post('/:id/end', (req, res) => {
     const roundedDuration = Math.round(durationMinutes * 100) / 100;
     const roundedDistance = Math.round(distanceKm * 1000) / 1000;
 
+    // The rider reports their own drop-off point, so it can't be authoritative
+    // for fleet state. Without a plausibility check, anyone could pay one unlock
+    // fee and teleport a scooter anywhere on Earth, corrupting the map.
+    // Allow a generous margin (GPS drift + being carried in a vehicle) and simply
+    // don't move the scooter if the claim is implausible — the ride still ends,
+    // so a rejected location can't strand the rental.
+    const plausibleKm = MIN_PLAUSIBLE_KM + (durationMinutes / 60) * MAX_PLAUSIBLE_KMH;
+    const locationTrusted = distanceKm <= plausibleKm;
+
     // Use a transaction for atomicity
     const endRental = db.transaction(() => {
-      // Update rental record
-      db.prepare(`
+      // Conditional on still being active so two workers can't both settle the
+      // same rental and double-charge (mirrors the claim guard in /start).
+      const settled = db.prepare(`
         UPDATE rentals
         SET status = 'completed',
             end_latitude = ?,
@@ -216,19 +235,35 @@ router.post('/:id/end', (req, res) => {
             duration_minutes = ?,
             distance_km = ?,
             total_cost = ?
-        WHERE id = ?
+        WHERE id = ? AND status = 'active'
       `).run(endLat, endLng, endTimeISO, roundedDuration, roundedDistance, totalCost, id);
 
-      // Update scooter: set new location, status back to available, reduce battery
+      if (settled.changes === 0) {
+        const err = new Error('NOT_ACTIVE');
+        err.code = 'NOT_ACTIVE';
+        throw err;
+      }
+
+      // Update scooter: status back to available, reduce battery, and move it only
+      // if the reported drop-off point is plausible.
       const batteryDrain = Math.min(Math.floor(durationMinutes / 3), 30); // Rough battery drain estimate
-      db.prepare(`
-        UPDATE scooters
-        SET status = 'available',
-            latitude = ?,
-            longitude = ?,
-            battery_level = MAX(0, battery_level - ?)
-        WHERE id = ?
-      `).run(endLat, endLng, batteryDrain, rental.scooter_id);
+      if (locationTrusted) {
+        db.prepare(`
+          UPDATE scooters
+          SET status = 'available',
+              latitude = ?,
+              longitude = ?,
+              battery_level = MAX(0, battery_level - ?)
+          WHERE id = ?
+        `).run(endLat, endLng, batteryDrain, rental.scooter_id);
+      } else {
+        db.prepare(`
+          UPDATE scooters
+          SET status = 'available',
+              battery_level = MAX(0, battery_level - ?)
+          WHERE id = ?
+        `).run(batteryDrain, rental.scooter_id);
+      }
 
       // Deduct per-minute cost from user balance (unlock fee already deducted at start)
       db.prepare('UPDATE users SET balance = balance - ?, updated_at = ? WHERE id = ?').run(
@@ -270,6 +305,10 @@ router.post('/:id/end', (req, res) => {
 
     res.json({ rental: updatedRental, summary, user: updatedUser });
   } catch (err) {
+    // Lost a concurrent settle — a client error, not a server fault.
+    if (err.code === 'NOT_ACTIVE') {
+      return res.status(400).json({ error: 'This rental is not active.' });
+    }
     console.error('End rental error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }

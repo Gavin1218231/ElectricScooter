@@ -31,9 +31,15 @@ router.post('/topup', (req, res) => {
       return res.status(400).json({ error: 'amount is required.' });
     }
 
-    const topupAmount = parseFloat(amount);
+    // Require a real number. parseFloat() is far too permissive for money:
+    // it credited "100abc" and [100] as $100 by silently coercing them.
+    if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+      return res.status(400).json({ error: 'Amount must be a finite number.' });
+    }
 
-    if (isNaN(topupAmount) || topupAmount <= 0) {
+    const topupAmount = amount;
+
+    if (topupAmount <= 0) {
       return res.status(400).json({ error: 'Amount must be a positive number.' });
     }
 

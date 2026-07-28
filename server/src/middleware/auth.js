@@ -10,12 +10,33 @@ const { getDb } = require('../database');
 // tokens for any account. Use JWT_SECRET from the environment; if it is absent
 // (e.g. local dev with no .env), generate a random per-process secret so tokens
 // are still unforgeable — they simply don't survive a server restart.
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
-if (!process.env.JWT_SECRET) {
+// A random per-process secret is cryptographically fine but operationally bad:
+// under a cluster or multiple replicas each worker signs with a different key,
+// so users are logged out at random depending on which worker serves them — an
+// intermittent, hard-to-diagnose outage that never appears in single-process dev.
+// Fail fast instead, except in tests where an ephemeral secret is what we want.
+// Note the allowlist is explicit ('test'/'development'), not `!== 'production'`:
+// NODE_ENV is unset in a plain `node src/index.js` deploy, so a negative check
+// would quietly hand a real deployment the unstable per-process key.
+const EPHEMERAL_SECRET_OK = ['test', 'development'].includes(process.env.NODE_ENV);
+const JWT_SECRET = process.env.JWT_SECRET || (
+  EPHEMERAL_SECRET_OK
+    ? crypto.randomBytes(32).toString('hex')
+    : null
+);
+if (JWT_SECRET && !process.env.JWT_SECRET) {
   console.warn(
-    '[auth] JWT_SECRET is not set — using a random per-process secret. ' +
-    'Sessions will not persist across restarts. Set JWT_SECRET for production.'
+    '[auth] JWT_SECRET is not set — using a random per-process secret because ' +
+    `NODE_ENV=${process.env.NODE_ENV}. Sessions reset on restart. Do not use this in production.`
   );
+}
+if (!JWT_SECRET) {
+  console.error(
+    '[auth] FATAL: JWT_SECRET is not set. Generate one with:\n' +
+    '  node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"\n' +
+    'Refusing to start rather than sign tokens with an unstable per-process key.'
+  );
+  process.exit(1);
 }
 
 /**
